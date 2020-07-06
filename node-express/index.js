@@ -3,6 +3,8 @@ const http = require('http');
 const morgan = require('morgan');
 const bodyparser = require('body-parser');
 const dishRouter = require('./routes/dishRouter'); //path specified as it is a file based node module
+const promoRouter = require('./routes/promoRouter');
+const leaderRouter = require('./routes/leaderRouter');
 
 const hostname = "localhost";
 const port = 3000;
@@ -14,7 +16,8 @@ app.use(morgan('dev'));
 app.use(bodyparser.json()); //the body of the request is placed in body attribute of req parameter
 
 app.use('/dishes', dishRouter); //Mounting /dishes endpoint to dishRouter Module
-
+app.use('/promotions',promoRouter);
+app.use('/leaders',leaderRouter);
 //Building RestAPIs using express functions
 //app.all => it is executed first by default for the /dishes endpoint
 //Using express router, hence moved to another dishRouter.js 
