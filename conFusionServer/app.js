@@ -4,11 +4,25 @@ var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 
+//Importing defined routes and corresponding actions
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 var dishRouter = require('./routes/dishRouter');
 var promoRouter = require('./routes/promoRouter');
 var leaderRouter = require('./routes/leaderRouter');
+
+//Declaring essentials for connecting to the mongodb server using mongoose
+const mongoose = require('mongoose');
+const Dishes = require('./models/dishes');
+const url = 'mongodb://localhost:27017/conFusion';
+const connect = mongoose.connect(url);
+
+//Establishing connection to the server
+connect.then((db)=>{
+  console.log('Connected correctly to server')
+}, (err) => {
+  console.log(err); 
+});
 
 var app = express();
 
