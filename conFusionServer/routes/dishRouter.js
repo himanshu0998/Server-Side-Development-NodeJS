@@ -29,7 +29,7 @@ dishRouter.route('/')
     });
 })
 .post((req,res,next)=>{
-    Dishes.create(req.body)
+    Dishes.create(req.body) //create request to add new info
     .then((dish)=>{
         console.log('Dish Created: ',dish);
         res.statusCode = 200;
@@ -52,7 +52,12 @@ dishRouter.route('/')
         res.statusCode = 200;
         res.setHeader('Content-Type','application/json');
         res.json(resp);  //res.json() puts the response in the body and sends to the client
+    },(err) => {
+        next(err); //passes the error to the overall error handler of the appplication
     })
+    .catch((err) => {
+        next(err);
+    });
 });
 
 dishRouter.route('/:dishId')
