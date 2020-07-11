@@ -30,11 +30,47 @@ var app = express();
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
 
+//Morgan and cookieparser middleware
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
-app.use(express.static(path.join(__dirname, 'public')));
+
+// declaring basic authentication middleware here so that user can be authorized before carrying out further
+// middleware functionalities
+
+function auth(req, res, next){
+  console.log(req.headers);
+
+  var authHeader = req.headers.authorization;
+  if(!authHeader)
+  {
+    var err = new Error('You are not authenticated!');
+    //challenging the client
+    res.setHeader('WWW-Authenticate','Basic');
+    err.status = 401;
+    return next(err);
+  }
+
+  var auth = new Buffer(authHeader.split(' ')[1],'base64').toString().split(':'); //auth Header = BASIC base64_encoded_string
+  var username = auth[0];
+  var password = auth[1];
+  if(username == 'admin' && password == 'password')
+  {
+    next(); //from auth the request is passed thru next middleware
+  }
+  else{
+    var err = new Error('You are not authenticated!');
+    //challenging the client
+    res.setHeader('WWW-Authenticate','Basic');
+    err.status = 401;
+    return next(err);
+  }
+}
+
+app.use(auth);
+
+app.use(express.static(path.join(__dirname, 'public'))); //helps to serve static data from public folder
 
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
