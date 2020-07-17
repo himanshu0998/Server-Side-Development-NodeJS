@@ -47,62 +47,37 @@ app.use(session({
   store: new FileStore()
 }));
 
+//moved up as the incoming user can access index and users endpoint without being authenticated and no other endpoint
+app.use('/', indexRouter);
+app.use('/users', usersRouter);
+
 // declaring basic authentication middleware here so that user can be authorized before carrying out further
 // middleware functionalities
 
-function auth(req, res, next){
+function auth (req, res, next) {
   console.log(req.session);
-
-  if(!req.session.user)
-  {
-    var authHeader = req.headers.authorization;
-    if(!authHeader)
-    {
+  if(!req.session.user) {
       var err = new Error('You are not authenticated!');
-      //challenging the client
-      res.setHeader('WWW-Authenticate','Basic');
-      err.status = 401;
+      err.status = 403;
       return next(err);
-    }
-
-    var auth = new Buffer.from(authHeader.split(' ')[1],'base64').toString().split(':'); //auth Header = BASIC base64_encoded_string
-    var username = auth[0];
-    var password = auth[1];
-    if(username === 'admin' && password === 'password')
-    {
-      //setting up cookie and sending it to client
-      // res.cookie('user','admin',{'signed':true});
-      req.session.user = 'admin'; //setting up userproperty on session
-      next(); //from auth the request is passed thru next middleware
-    }
-    else{
-      var err = new Error('You are not authenticated!');
-      //challenging the client
-      res.setHeader('WWW-Authenticate','Basic');
-      err.status = 401;
-      return next(err);
-    }
   }
-  else 
-  {
-    if (req.session.user === 'admin') {
-        next();
+  else {
+    if (req.session.user === 'authenticated') {
+      next();
     }
     else {
-        var err = new Error('You are not authenticated!');
-        err.status = 401;
-        next(err);
+      var err = new Error('You are not authenticated!');
+      err.status = 403;
+      return next(err);
     }
   }
-  
 }
 
 app.use(auth);
 
 app.use(express.static(path.join(__dirname, 'public'))); //helps to serve static data from public folder
 
-app.use('/', indexRouter);
-app.use('/users', usersRouter);
+
 app.use('/dishes',dishRouter);
 app.use('/promotions',promoRouter);
 app.use('/leaders',leaderRouter);
