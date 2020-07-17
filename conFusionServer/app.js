@@ -3,6 +3,8 @@ var express = require('express');
 var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
+var session = require('express-session');
+var FileStore = require('session-file-store')(session); //takes session as a parameter
 
 //Importing defined routes and corresponding actions
 var indexRouter = require('./routes/index');
@@ -34,15 +36,24 @@ app.set('view engine', 'jade');
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-app.use(cookieParser('12345-67890-09876-54321')); //in order to use signed cookies, secret key is set
+//app.use(cookieParser('12345-67890-09876-54321')); //in order to use signed cookies, secret key is set
+
+//Using Session instead of cookies //This session gets added to req
+app.use(session({
+  name: 'session-id',
+  secret: '12345-67890-09876-54321',
+  saveUninitialized: false,
+  resave: false,
+  store: new FileStore()
+}));
 
 // declaring basic authentication middleware here so that user can be authorized before carrying out further
 // middleware functionalities
 
 function auth(req, res, next){
-  console.log(req.signedCookies);
+  console.log(req.session);
 
-  if(!req.signedCookies.user)
+  if(!req.session.user)
   {
     var authHeader = req.headers.authorization;
     if(!authHeader)
@@ -60,7 +71,8 @@ function auth(req, res, next){
     if(username === 'admin' && password === 'password')
     {
       //setting up cookie and sending it to client
-      res.cookie('user','admin',{'signed':true});
+      // res.cookie('user','admin',{'signed':true});
+      req.session.user = 'admin'; //setting up userproperty on session
       next(); //from auth the request is passed thru next middleware
     }
     else{
@@ -73,7 +85,7 @@ function auth(req, res, next){
   }
   else 
   {
-    if (req.signedCookies.user === 'admin') {
+    if (req.session.user === 'admin') {
         next();
     }
     else {
