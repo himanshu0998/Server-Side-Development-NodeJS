@@ -5,6 +5,8 @@ var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 var session = require('express-session');
 var FileStore = require('session-file-store')(session); //takes session as a parameter
+var passport = require('passport');
+var authenticate = require('./authenticate');
 
 //Importing defined routes and corresponding actions
 var indexRouter = require('./routes/index');
@@ -47,6 +49,10 @@ app.use(session({
   store: new FileStore()
 }));
 
+app.use(passport.initialize());
+app.use(passport.session());
+//passport session midlleware loads the username and password directly into the req 
+
 //moved up as the incoming user can access index and users endpoint without being authenticated and no other endpoint
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
@@ -54,24 +60,37 @@ app.use('/users', usersRouter);
 // declaring basic authentication middleware here so that user can be authorized before carrying out further
 // middleware functionalities
 
+// AUth function while using Passport
 function auth (req, res, next) {
-  console.log(req.session);
-  if(!req.session.user) {
+  // console.log(req.session);
+  if(!req.user) {
       var err = new Error('You are not authenticated!');
       err.status = 403;
       return next(err);
   }
   else {
-    if (req.session.user === 'authenticated') {
-      next();
-    }
-    else {
-      var err = new Error('You are not authenticated!');
-      err.status = 403;
-      return next(err);
-    }
+    next();
   }
 }
+
+// function auth (req, res, next) {
+//   console.log(req.session);
+//   if(!req.session.user) {
+//       var err = new Error('You are not authenticated!');
+//       err.status = 403;
+//       return next(err);
+//   }
+//   else {
+//     if (req.session.user === 'authenticated') {
+//       next();
+//     }
+//     else {
+//       var err = new Error('You are not authenticated!');
+//       err.status = 403;
+//       return next(err);
+//     }
+//   }
+// }
 
 app.use(auth);
 
