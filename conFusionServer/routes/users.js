@@ -2,6 +2,7 @@ var express = require('express');
 const bodyParser = require('body-parser');
 var User = require('../models/user');
 var passport = require('passport');
+var authenticate = require('../authenticate');
 
 var router = express.Router();
 
@@ -35,9 +36,12 @@ router.post('/signup',function(req, res, next){
 });
 
 router.post('/login',passport.authenticate('local'),(req, res, next) => {
+
+  var token =  authenticate.getToken({_id:req.user._id}); //only user id is enough as a payload to generate jwt
+  //in case of jwt, once the user is authenticated using local strategy, a jwt token is issued and the sessions are not created
   res.statusCode = 200;
   res.setHeader('Content-Type','application/json');
-  res.json({success:true,status:'You are successfully logged In!'});
+  res.json({success:true,token: token,status:'You are successfully logged In!'});
 });
 
 // router.post('/signup',function(req, res, next){
