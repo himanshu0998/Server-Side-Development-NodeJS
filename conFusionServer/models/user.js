@@ -13,6 +13,14 @@ var User = new Schema({
     //     type: String,
     //     required: true
     // },// USERNAME and PASSPORT are added by PassportLocal Mongoose itself
+    firstname: {
+        type: String,
+        default: ''
+    },
+    lastname: {
+        type: String,
+        default: ''
+    },
     admin:   {
         type: Boolean,
         default: false

@@ -15,8 +15,9 @@ const commentSchema = new Schema({
         required: true
     },
     author:  {
-        type: String,
-        required: true
+        //Populating author field by defining reference to the author 
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
     }
 }, {
     timestamps: true
