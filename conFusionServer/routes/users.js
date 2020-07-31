@@ -3,13 +3,13 @@ const bodyParser = require('body-parser');
 var User = require('../models/user');
 var passport = require('passport');
 var authenticate = require('../authenticate');
-
+var cors = require('./cors');
 var router = express.Router();
 
 router.use(bodyParser.json());
 
 /* GET users listing. */
-router.get('/', authenticate.verifyUser,authenticate.verifyAdmin,function(req, res, next) {
+router.get('/',cors.corsWithOptions, authenticate.verifyUser,authenticate.verifyAdmin,function(req, res, next) {
   User.find({})
   .then((users)=>{
     res.statusCode = 200;
@@ -22,7 +22,7 @@ router.get('/', authenticate.verifyUser,authenticate.verifyAdmin,function(req, r
 });
 
 //Using passport-local-mongoose(plm)
-router.post('/signup',function(req, res, next){
+router.post('/signup',cors.corsWithOptions,function(req, res, next){
   //register is the function provided by plm plugin which takes parameters as shown
   User.register(new User({username: req.body.username}), 
     req.body.password , (err,user) => {
@@ -56,7 +56,7 @@ router.post('/signup',function(req, res, next){
   });
 });
 
-router.post('/login',passport.authenticate('local'),(req, res, next) => {
+router.post('/login',cors.corsWithOptions,passport.authenticate('local'),(req, res, next) => {
 
   var token =  authenticate.getToken({_id:req.user._id}); //only user id is enough as a payload to generate jwt
   //in case of jwt, once the user is authenticated using local strategy, a jwt token is issued and the sessions are not created
@@ -146,7 +146,7 @@ router.post('/login',passport.authenticate('local'),(req, res, next) => {
 // });
 
 //get request for logging out as you are not sending anything to the server as the server is already tracking the user
-router.get('/logout', (req, res) => {
+router.get('/logout',cors.corsWithOptions, (req, res) => {
   if (req.session) {
     req.session.destroy();
     res.clearCookie('session-id');

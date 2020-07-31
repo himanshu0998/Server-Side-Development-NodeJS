@@ -1,7 +1,7 @@
 //express is required here as every new file becomes its own node module
 const express = require('express');
 const bodyParser = require('body-parser');
-
+const cors = require('./cors');
 const mongoose = require('mongoose');
 const Leaders = require('../models/leaders');
 const authenticate = require('../authenticate');
@@ -10,12 +10,15 @@ const leaderRouter = express.Router();
 leaderRouter.use(bodyParser.json());
 
 leaderRouter.route('/')
+.options(cors.corsWithOptions, (req,res)=>{
+    res.sendStatus = 200;
+}) //preflight requests first send options and then the request
 // .all((req,res,next) => {
 //     res.statusCode = 200;
 //     res.setHeader('Content-Type','text/plain');
 //     next(); //this will start looking for next middleware functions that match /leaders end point and the modified req and res parameters are passed ahead
 // })
-.get((req,res,next) => {
+.get(cors.cors,(req,res,next) => {
     Leaders.find({})
     .then((leaders)=>{
         // console.log(leaders);
@@ -29,7 +32,7 @@ leaderRouter.route('/')
         next(err);
     })
 })
-.post(authenticate.verifyUser,(req,res,next)=>{
+.post(cors.corsWithOptions,authenticate.verifyUser,authenticate.verifyAdmin,(req,res,next)=>{
     Leaders.create(req.body)
     .then((leader)=>{
         console.log('Leader Added: ',leader);
@@ -43,11 +46,11 @@ leaderRouter.route('/')
         next(err);
     });
 })
-.put(authenticate.verifyUser,(req,res,next)=>{
+.put(cors.corsWithOptions,authenticate.verifyUser,authenticate.verifyAdmin,(req,res,next)=>{
     res.statusCode = 403; //operation not supported
     res.end('PUT operation not supported on /leaders');
 })
-.delete(authenticate.verifyUser,(req,res,next) => {
+.delete(cors.corsWithOptions,authenticate.verifyUser,authenticate.verifyAdmin,(req,res,next) => {
     Leaders.remove({})
     .then((resp)=>{
         res.statusCode = 200;
@@ -62,12 +65,15 @@ leaderRouter.route('/')
 });
 
 leaderRouter.route('/:leaderId')
+.options(cors.corsWithOptions, (req,res)=>{
+    res.sendStatus = 200;
+}) //preflight requests first send options and then the request
 // .all((req,res,next) => {
 //     res.statusCode = 200;
 //     res.setHeader('Content-Type','text/plain');
 //     next(); //this will start looking for next middleware functions that match /leaders/:leaderId end point and the modified req and res parameters are passed ahead
 // })
-.get((req,res,next) => {
+.get(cors.cors,(req,res,next) => {
     Leaders.findById(req.params.leaderId)
     .then((leader) => {
         res.statusCode = 200;
@@ -80,11 +86,11 @@ leaderRouter.route('/:leaderId')
         next(err);
     });
 })
-.post(authenticate.verifyUser,(req,res,next)=>{
+.post(cors.corsWithOptions,authenticate.verifyUser,authenticate.verifyAdmin,(req,res,next)=>{
     res.statusCode = 403; //operation not supported
     res.end('POST operation not supported on /leaders/'+req.params.leaderId);
 })
-.put(authenticate.verifyUser,(req,res,next)=>{
+.put(cors.corsWithOptions,authenticate.verifyUser,authenticate.verifyAdmin,(req,res,next)=>{
     Leaders.findByIdAndUpdate(req.params.leaderId,{
         $set:req.body
     },{new:true})
@@ -99,7 +105,7 @@ leaderRouter.route('/:leaderId')
         next(err);
     });
 })
-.delete(authenticate.verifyUser,(req,res,next) => {
+.delete(cors.corsWithOptions,authenticate.verifyUser,authenticate.verifyAdmin,(req,res,next) => {
     Leaders.findByIdAndRemove(req.params.leaderId)
     .then((resp) => {
         res.statusCode = 200;
